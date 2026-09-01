@@ -27,7 +27,7 @@ from sse_agent import CODING_TOOL_CATALOG, make_coding_step_fn, run_episode  # n
 
 MODEL = "/home/martin/bin/deepseek-v4-flash-completions.py"
 ENDPOINT = "run:///home/martin/bin/deepseek-v4-flash-completions.py"
-MAX_STEPS = int(os.environ.get("SSE_AGENT_MAX_STEPS", "15"))
+MAX_STEPS = int(os.environ.get("SSE_AGENT_MAX_STEPS", "25"))
 STEP_SLEEP_S = float(os.environ.get("SSE_AGENT_SLEEP_S", "0.3"))
 
 

@@ -145,36 +145,60 @@ structured-state's accuracy without affecting the token-growth trend.
 
 ### agent_benchmark tasks (`data/agent_benchmark_results/`)
 
-Four representative tasks run via `agent-sse-state.py` through
-`agent_benchmark`'s real runner (isolated working directory, real oracle
-checks):
+All 15 tasks currently in `agent_benchmark`, run via `agent-sse-state.py`
+through the real runner (isolated working directory, real oracle checks,
+step budget of 25 — an earlier, partial pass used 15 and was too tight for
+the multi-document tasks below, so the script's default was raised
+accordingly):
 
-| task | outcome | steps | elapsed | total tokens (prompt/completion) |
-|---|---|---:|---:|---:|
-| tell-the-date | pass | 5 | 17.0s | 2,004 / 1,266 |
-| count-files-in-dir | pass | 7 | 32.5s | 2,822 / 2,427 |
-| csv-counting | **fail** | 6 | 37.5s | 2,575 / 3,454 |
-| buggy-script-fix | pass | 15 | 84.5s | 13,578 / 7,897 |
+| task | outcome | steps | elapsed | total tokens (prompt/completion) | stopped |
+|---|---|---:|---:|---:|---|
+| tell-the-date | pass | 5 | 17.0s | 2,004 / 1,266 | finish |
+| count-files-in-dir | pass | 7 | 32.5s | 2,822 / 2,427 | finish |
+| csv-counting | **fail** | 6 | 37.5s | 2,575 / 3,454 | finish |
+| buggy-script-fix | pass | 15 | 84.5s | 13,578 / 7,897 | step budget |
+| git-log-analysis | pass | 6 | 28.0s | 4,259 / 2,738 | finish |
+| sqlite-analysis | pass | 9 | 59.0s | 6,377 / 6,447 | finish |
+| test-authoring | pass | 9 | 173.1s | 8,330 / 18,993 | finish |
+| murder-mystery | **fail** | 25 | 101.0s | 32,685 / 7,784 | step budget |
+| inversion-count | pass | 6 | 71.0s | 4,120 / 7,140 | finish |
+| binary-format-re | pass | 25 | 246.1s | 38,446 / 26,664 | step budget |
+| data-pipeline-recovery | **fail** | 25 | 92.0s | 34,385 / 7,162 | step budget |
+| dead-code-removal | **fail** | 25 | 377.1s | 20,168 / 5,114 | step budget |
+| fibonacci-codegen | pass | 3 | 13.0s | 1,311 / 941 | finish |
+| personality-check | pass | 16 | 52.0s | 6,637 / 3,779 | finish |
+| tool-probe | pass | 5 | 23.0s | 2,721 / 2,232 | finish |
 
-(An earlier pass of these same four tasks against Claude Haiku 4.5 — kept in
-git history — went 3 pass / 1 fail with the failure on a different task and
-far fewer tokens; DeepSeek V4 Flash reasons more verbosely per step here,
-which shows up directly as higher completion-token counts.)
+**11/15 pass.** The failures split into two different causes:
 
-The `csv-counting` failure is a genuine off-by-format error, not an
-infrastructure problem: the agent computed the average of `10, 20, 30, 40,
-50, 60` correctly but wrote `35` instead of `35.0` to `average_output.txt`,
-and the oracle's regex requires the literal substring `35.0`. `buggy-script-fix`
-took all 15 of its step budget and never called `finish`, but a `cat` of the
-generated `summary.json` in its last tool call shows the correct values, so
-the oracle passed anyway. Full stdout (including every step's token usage)
-is preserved in `data/agent_benchmark_results/`.
+- `csv-counting` is a genuine off-by-format error, not infrastructure: the
+  agent computed the average of `10, 20, 30, 40, 50, 60` correctly but wrote
+  `35` instead of `35.0`, and the oracle's regex requires the literal
+  substring `35.0`.
+- `murder-mystery`, `data-pipeline-recovery` and `dead-code-removal` all ran
+  out of their 25-step budget while still reading input files, never
+  reaching the point of writing an answer. This is a real limitation of the
+  current action space rather than a reasoning failure: each `read_file`
+  call costs one full model round-trip (there is no batched/multi-tool-call
+  turn), so tasks that need many files read before anything can be written
+  — 16 documents for `murder-mystery`, a multi-module package for
+  `dead-code-removal` — are step-budget-starved long before the model runs
+  out of ideas. `binary-format-re` (10 sample files) hit the same 25-step
+  ceiling but still passed, having just barely fit reading + writing +
+  verifying inside the budget.
+- `buggy-script-fix` also exhausted its step budget without calling
+  `finish`, but the correct `summary.json` had already been written by then,
+  so the oracle still passed.
 
-These four tasks are short (3–6 tool calls), so they don't exercise the
-long-horizon regime the paper — or the scaling experiment above — is about;
-they're included mainly to show the runtime working end-to-end inside a
-real benchmark harness with a real correctness oracle, not as a token-cost
-comparison.
+Full stdout (including every step's token usage and reasoning) is preserved
+per task in `data/agent_benchmark_results/`.
+
+These tasks are much shorter than the long-horizon regime the paper — or the
+scaling experiment above — targets, so they're not a token-cost comparison;
+they exercise the runtime end-to-end against real, adversarially-designed
+oracles, and surface a genuine architectural gap (one tool call per model
+turn) that the long-horizon experiment's single-action-per-step environment
+doesn't expose.
 
 ## License
 
