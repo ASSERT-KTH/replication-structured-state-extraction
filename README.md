@@ -52,9 +52,9 @@ exactly that loop on top of agentknit's model-connection layer
 ### Deviations from the paper (and why)
 
 This is a proof-of-concept at a much smaller scale than the paper, run
-against a single free-tier-adjacent model (Claude Haiku 4.5, via a local
-OpenAI-compatible bridge script) rather than the paper's model lineup or its
-InterCode-CTF / tau-bench benchmarks:
+against a single model (DeepSeek V4 Flash, via the official DeepSeek API
+through a local OpenAI-compatible bridge script) rather than the paper's
+model lineup or its InterCode-CTF / tau-bench benchmarks:
 
 - **Action protocol.** The paper's runtime is environment-agnostic; here the
   action is always a JSON `{"tool": ..., "args": ...}` blob parsed out of
@@ -120,35 +120,28 @@ whether the agent gets a bounded state or the full transcript.
 
 | mode | T | accuracy | total prompt tokens | prompt tokens on the *last* step |
 |---|---:|---:|---:|---:|
-| structured_state | 5  | 0.60 | 1,945  | 398   |
-| conversational    | 5  | 1.00 | 2,895  | 895   |
-| structured_state | 10 | 1.00 | 4,142  | 434   |
-| conversational    | 10 | 1.00 | 8,364  | 1,433 |
-| structured_state | 20 | 1.00 | 8,441  | 443   |
-| conversational    | 20 | 1.00 | 32,869 | 3,093 |
-| structured_state | 30 | 1.00 | 12,191 | 408   |
-| conversational    | 30 | 1.00 | 75,670 | 4,847 |
+| structured_state | 5  | 1.00 | 2,182  | 440   |
+| conversational    | 5  | 1.00 | 2,275  | 609   |
+| structured_state | 10 | 1.00 | 4,462  | 460   |
+| conversational    | 10 | 1.00 | 6,475  | 994   |
+| structured_state | 20 | 1.00 | 8,782  | 440   |
+| conversational    | 20 | 1.00 | 24,637 | 2,174 |
+| structured_state | 30 | 1.00 | 13,182 | 440   |
+| conversational    | 30 | 1.00 | 43,761 | 2,749 |
 
-The qualitative claim replicates cleanly: the structured-state agent's
-per-step prompt size is flat (~400–440 tokens, independent of T — bounded by
-the 12-shelf state, not by history length), while the conversational
-baseline's per-step prompt grows linearly with T (895 → 4,847 tokens over
-the same range), so its *cumulative* spend grows much faster than linearly:
-6× the horizon (5→30) produces a 26× increase in total prompt tokens for the
-conversational baseline, versus 6.3× for structured-state — i.e. close to
-the paper's predicted O(T²) vs. O(T) split at this scale.
-
-One honest wrinkle: structured-state scored 0.60 at T=5 versus a clean 1.00
-for the conversational baseline at the same horizon. Inspecting the
-per-step trace, one of the two misses was a JSON-parsing failure on the
-model's part (recorded as `parse_error`), the other a one-off bookkeeping
-slip while the persisted state was still small — both are instances of the
-paper's own reported failure mode for weaker models (state overwritten or
-malformed rather than merged correctly), not evidence against the
-architecture. Accuracy is 1.00 for structured-state at every longer horizon
-tested (T=10, 20, 30), so this looks like early-steps noise from a small
-model rather than a horizon effect — worth a larger sample if this is
-pursued further.
+The qualitative claim replicates cleanly, and this run scored perfectly
+(1.00) in both modes at every horizon, so the token-growth curves aren't
+confounded by accuracy differences: the structured-state agent's per-step
+prompt size is flat (~440–460 tokens, independent of T — bounded by the
+12-shelf state, not by history length), while the conversational baseline's
+per-step prompt grows linearly with T (609 → 2,749 tokens over the same
+range). Cumulative spend reflects that directly: 6× the horizon (5→30)
+produces a ~19× increase in total prompt tokens for the conversational
+baseline, versus ~6× for structured-state — i.e. close to the paper's
+predicted O(T²) vs. O(T) split at this scale, and cleaner than an earlier
+pass of this same experiment run against Claude Haiku 4.5 (kept in git
+history), where a small-model parsing slip at T=5 briefly dented
+structured-state's accuracy without affecting the token-growth trend.
 
 ### agent_benchmark tasks (`data/agent_benchmark_results/`)
 
@@ -158,17 +151,24 @@ checks):
 
 | task | outcome | steps | elapsed | total tokens (prompt/completion) |
 |---|---|---:|---:|---:|
-| tell-the-date | pass | 3 | 9.0s | 1,128 / 447 |
-| count-files-in-dir | pass | 3 | 9.0s | 1,096 / 422 |
-| csv-counting | pass | 3 | 16.0s | 1,208 / 901 |
-| buggy-script-fix | **fail** | 6 | 53.5s | 4,615 / 4,555 |
+| tell-the-date | pass | 5 | 17.0s | 2,004 / 1,266 |
+| count-files-in-dir | pass | 7 | 32.5s | 2,822 / 2,427 |
+| csv-counting | **fail** | 6 | 37.5s | 2,575 / 3,454 |
+| buggy-script-fix | pass | 15 | 84.5s | 13,578 / 7,897 |
 
-The `buggy-script-fix` failure is a genuine reasoning error, not an
-infrastructure problem: the agent fixed three of the four seeded bugs but
-computed the unique-customer count over completed orders only instead of
-all orders, so its `summary.json` didn't match the oracle's expected values.
-Full stdout (including every step's token usage) is preserved in
-`data/agent_benchmark_results/buggy-script-fix.json`.
+(An earlier pass of these same four tasks against Claude Haiku 4.5 — kept in
+git history — went 3 pass / 1 fail with the failure on a different task and
+far fewer tokens; DeepSeek V4 Flash reasons more verbosely per step here,
+which shows up directly as higher completion-token counts.)
+
+The `csv-counting` failure is a genuine off-by-format error, not an
+infrastructure problem: the agent computed the average of `10, 20, 30, 40,
+50, 60` correctly but wrote `35` instead of `35.0` to `average_output.txt`,
+and the oracle's regex requires the literal substring `35.0`. `buggy-script-fix`
+took all 15 of its step budget and never called `finish`, but a `cat` of the
+generated `summary.json` in its last tool call shows the correct values, so
+the oracle passed anyway. Full stdout (including every step's token usage)
+is preserved in `data/agent_benchmark_results/`.
 
 These four tasks are short (3–6 tool calls), so they don't exercise the
 long-horizon regime the paper — or the scaling experiment above — is about;

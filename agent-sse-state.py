@@ -25,8 +25,8 @@ import agentknit  # noqa: E402
 
 from sse_agent import CODING_TOOL_CATALOG, make_coding_step_fn, run_episode  # noqa: E402
 
-MODEL = "/home/martin/bin/claude-haiku-completions.py"
-ENDPOINT = "run:///home/martin/bin/claude-haiku-completions.py"
+MODEL = "/home/martin/bin/deepseek-v4-flash-completions.py"
+ENDPOINT = "run:///home/martin/bin/deepseek-v4-flash-completions.py"
 MAX_STEPS = int(os.environ.get("SSE_AGENT_MAX_STEPS", "15"))
 STEP_SLEEP_S = float(os.environ.get("SSE_AGENT_SLEEP_S", "0.3"))
 

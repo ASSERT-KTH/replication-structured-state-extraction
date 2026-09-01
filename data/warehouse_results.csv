@@ -1,9 +1,9 @@
 mode,horizon,accuracy,total_prompt_tokens,total_completion_tokens,final_prompt_tokens_this_step
-structured_state,5,0.600,1945,1043,398
-conversational,5,1.000,2895,556,895
-structured_state,10,1.000,4142,2034,434
-conversational,10,1.000,8364,848,1433
-structured_state,20,1.000,8441,3426,443
-conversational,20,1.000,32869,2037,3093
-structured_state,30,1.000,12191,5485,408
-conversational,30,1.000,75670,3299,4847
+structured_state,5,1.000,2182,534,440
+conversational,5,1.000,2275,418,609
+structured_state,10,1.000,4462,1235,460
+conversational,10,1.000,6475,884,994
+structured_state,20,1.000,8782,6703,440
+conversational,20,1.000,24637,2524,2174
+structured_state,30,1.000,13182,5510,440
+conversational,30,1.000,43761,12207,2749

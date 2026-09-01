@@ -37,8 +37,8 @@ import agentknit  # noqa: E402
 
 from sse_agent import Mode, StepRecord, run_episode  # noqa: E402
 
-MODEL = "/home/martin/bin/claude-haiku-completions.py"
-ENDPOINT = "run:///home/martin/bin/claude-haiku-completions.py"
+MODEL = "/home/martin/bin/deepseek-v4-flash-completions.py"
+ENDPOINT = "run:///home/martin/bin/deepseek-v4-flash-completions.py"
 
 TASK_SPEC = (
     "You are tracking inventory for a warehouse with a fixed set of numbered "
