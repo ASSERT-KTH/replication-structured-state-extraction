@@ -1,0 +1,18 @@
+{
+  "agent": "/home/martin/workspace/prototypes/replication-structured-state-extraction/agent-sse-state.py",
+  "task": "tell-the-date",
+  "outcome": "pass",
+  "agent_return_code": 0,
+  "elapsed": 9.0,
+  "cwd": "/tmp/benchmark_tell-the-date_93zz7mcs",
+  "stdout_lines": [
+    "[step 0] tool=exec_shell prompt_tokens=342 completion_tokens=139",
+    "2026-09-01",
+    "[step 1] tool=write_file prompt_tokens=390 completion_tokens=137",
+    "[step 2] tool=finish prompt_tokens=396 completion_tokens=171",
+    "=== sse-agent finished: finish ===",
+    "SSE_SUMMARY: {\"mode\": \"structured_state\", \"stopped_reason\": \"finish\", \"final_reply\": \"Successfully wrote today's date (2026-09-01) to date.txt in YEAR-MONTH-DAY format\", \"final_state\": {\"task\": \"Write today's date to date.txt in YEAR-MONTH-DAY format\", \"status\": \"completed\", \"today_date\": \"2026-09-01\"}, \"num_steps\": 3, \"total_prompt_tokens\": 1128, \"total_completion_tokens\": 447}"
+  ],
+  "stderr_lines": [],
+  "timestamp": "2026-09-01T10:10:43"
+}

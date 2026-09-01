@@ -1,0 +1,18 @@
+{
+  "agent": "/home/martin/workspace/prototypes/replication-structured-state-extraction/agent-sse-state.py",
+  "task": "count-files-in-dir",
+  "outcome": "pass",
+  "agent_return_code": 0,
+  "elapsed": 9.0,
+  "cwd": "/tmp/benchmark_count-files-in-dir_785yqgj3",
+  "stdout_lines": [
+    "[step 0] tool=exec_shell prompt_tokens=343 completion_tokens=138",
+    "18",
+    "[step 1] tool=write_file prompt_tokens=374 completion_tokens=149",
+    "[step 2] tool=finish prompt_tokens=379 completion_tokens=135",
+    "=== sse-agent finished: finish ===",
+    "SSE_SUMMARY: {\"mode\": \"structured_state\", \"stopped_reason\": \"finish\", \"final_reply\": \"Successfully counted all regular files in the files/ directory (including subdirectories). Total count: 18 files. Result written to count.txt.\", \"final_state\": {\"task\": \"count files in files/ directory\", \"status\": \"completed\", \"file_count\": 18, \"result_file\": \"count.txt\"}, \"num_steps\": 3, \"total_prompt_tokens\": 1096, \"total_completion_tokens\": 422}"
+  ],
+  "stderr_lines": [],
+  "timestamp": "2026-09-01T10:11:15"
+}

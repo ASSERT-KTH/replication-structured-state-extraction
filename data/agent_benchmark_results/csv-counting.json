@@ -1,0 +1,17 @@
+{
+  "agent": "/home/martin/workspace/prototypes/replication-structured-state-extraction/agent-sse-state.py",
+  "task": "csv-counting",
+  "outcome": "pass",
+  "agent_return_code": 0,
+  "elapsed": 16.01,
+  "cwd": "/tmp/benchmark_csv-counting_fdimzn72",
+  "stdout_lines": [
+    "[step 0] tool=read_file prompt_tokens=336 completion_tokens=128",
+    "[step 1] tool=write_file prompt_tokens=392 completion_tokens=380",
+    "[step 2] tool=finish prompt_tokens=480 completion_tokens=393",
+    "=== sse-agent finished: finish ===",
+    "SSE_SUMMARY: {\"mode\": \"structured_state\", \"stopped_reason\": \"finish\", \"final_reply\": \"Successfully processed data.csv and calculated the average of the 'value' column. Results: Processed 8 entries total, extracted 6 numeric values [10, 20, 30, 40, 50, 60], skipped 2 non-numeric/empty entries (empty line and 'abc'), calculated average: 35.0, and wrote result to average_output.txt. Edge cases handled correctly.\", \"final_state\": {\"step\": 3, \"task\": \"Process data.csv and calculate average of value column\", \"progress\": \"Task complete - average calculated and written to output file\", \"raw_data\": \"value\\n10\\n20\\n\\n30\\n40\\n50\\nabc\\n60\", \"numeric_values\": [10, 20, 30, 40, 50, 60], \"average\": 35.0, \"skipped_entries\": [\"(empty line)\", \"abc\"], \"status\": \"finished\"}, \"num_steps\": 3, \"total_prompt_tokens\": 1208, \"total_completion_tokens\": 901}"
+  ],
+  "stderr_lines": [],
+  "timestamp": "2026-09-01T10:11:44"
+}
